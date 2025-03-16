@@ -2,6 +2,18 @@ import requests
 import json
 
 def emotion_detector(text_to_analyze):
+    # Check if the input is empty or None
+    if not text_to_analyze.strip():
+        return {
+            'anger': None,
+            'disgust': None,
+            'fear': None,
+            'joy': None,
+            'sadness': None,
+            'dominant_emotion': None,
+            'status_code': 400  # Indicate a bad request
+        }
+
     url = "https://sn-watson-emotion.labs.skills.network/v1/watson.runtime.nlp.v1/NlpService/EmotionPredict"
     headers = {
         "grpc-metadata-mm-model-id": "emotion_aggregated-workflow_lang_en_stock",
@@ -16,31 +28,31 @@ def emotion_detector(text_to_analyze):
     if response.status_code == 200:
         response_json = response.json()
 
-        # Print API response for debugging
-        print("API Response:", json.dumps(response_json, indent=2))
-
-        # Navigate the correct response structure
         if "emotionPredictions" in response_json and len(response_json["emotionPredictions"]) > 0:
-            emotions = response_json["emotionPredictions"][0]["emotion"]  # Extract emotions
+            emotions = response_json["emotionPredictions"][0]["emotion"]
 
-            # Store emotion scores
             emotion_scores = {
-                'anger': emotions.get('anger', 0),
-                'disgust': emotions.get('disgust', 0),
-                'fear': emotions.get('fear', 0),
-                'joy': emotions.get('joy', 0),
-                'sadness': emotions.get('sadness', 0),
+                'anger': emotions.get('anger', None),
+                'disgust': emotions.get('disgust', None),
+                'fear': emotions.get('fear', None),
+                'joy': emotions.get('joy', None),
+                'sadness': emotions.get('sadness', None)
             }
 
-            # Determine the dominant emotion
-            dominant_emotion = max(emotion_scores, key=emotion_scores.get)
+            dominant_emotion = max(emotion_scores, key=lambda k: emotion_scores[k] if emotion_scores[k] is not None else -1)
 
-            # Return the formatted response
             return {
                 **emotion_scores,
-                'dominant_emotion': dominant_emotion
+                'dominant_emotion': dominant_emotion,
+                'status_code': 200
             }
-        else:
-            return "Unexpected response structure: " + str(response_json)
-    else:
-        return f"Error: {response.status_code}, {response.text}"
+    
+    return {
+        'anger': None,
+        'disgust': None,
+        'fear': None,
+        'joy': None,
+        'sadness': None,
+        'dominant_emotion': None,
+        'status_code': response.status_code
+    }
