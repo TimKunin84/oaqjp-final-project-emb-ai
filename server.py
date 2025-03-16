@@ -1,3 +1,10 @@
+"""
+Flask server for the Emotion Detection API.
+
+This server provides an endpoint to analyze emotions from text input
+using the EmotionDetection package.
+"""
+
 from flask import Flask, request, jsonify
 from EmotionDetection import emotion_detector
 
@@ -5,6 +12,13 @@ app = Flask(__name__)
 
 @app.route('/emotionDetector', methods=['POST'])
 def emotion_api():
+    """
+    API endpoint to analyze emotions from a given text input.
+
+    Returns:
+        JSON response containing emotion scores and the dominant emotion.
+        If input text is empty, an error message is returned.
+    """
     data = request.json
     if 'text' not in data:
         return jsonify({"error": "Missing 'text' in request"}), 400
@@ -12,7 +26,6 @@ def emotion_api():
     text_to_analyze = data['text']
     emotion_result = emotion_detector(text_to_analyze)
 
-    # Check for invalid input (status_code 400)
     if emotion_result["dominant_emotion"] is None:
         return jsonify({"message": "Invalid text! Please try again!"}), 400
 
@@ -25,10 +38,13 @@ def emotion_api():
         "dominant_emotion": emotion_result["dominant_emotion"]
     }
 
-    formatted_response = f"For the given statement, the system response is 'anger': {response['anger']}, " \
-                         f"'disgust': {response['disgust']}, 'fear': {response['fear']}, " \
-                         f"'joy': {response['joy']} and 'sadness': {response['sadness']}. " \
-                         f"The dominant emotion is {response['dominant_emotion']}."
+    formatted_response = (
+        f"For the given statement, the system response is "
+        f"'anger': {response['anger']}, 'disgust': {response['disgust']}, "
+        f"'fear': {response['fear']}, 'joy': {response['joy']} and "
+        f"'sadness': {response['sadness']}. "
+        f"The dominant emotion is {response['dominant_emotion']}."
+    )
 
     return jsonify({"message": formatted_response, "raw_response": response})
 
